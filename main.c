@@ -37,8 +37,14 @@ int main(int argc, char *argv[]) {
 
 	keypad(stdscr, TRUE);
 
-    init_pair(1, 179, 000);
-
+    init_pair(2, 179, 000);
+    init_pair(4, 178, 000);
+    init_pair(8, 172, 000);
+    init_pair(16, 208, 000);
+    init_pair(32, 160, 000);
+    init_pair(64, 196, 000);
+    init_pair(128, 220, 000);
+    init_pair(256, 184, 000);
 
     draw(game);
     draw(game);
@@ -86,11 +92,9 @@ void draw(struct game_state *game) {
             box(local_window[i][j], 0, 0); // I could remove box and invert colors.
             char num[4];
             sprintf(num, "%d", game->grid[i][j]);
-            wbkgd(local_window[i][j], COLOR_PAIR(1) );
+            wbkgd(local_window[i][j], COLOR_PAIR(game->grid[i][j] % 256));
             mvwprintw(local_window[i][j], 2,2, num);
             wrefresh(local_window[i][j]);
-            wbkgd(local_window[i][j], COLOR_PAIR(1));
-            //mvprintw(4 + i*4,10 +j*6, num);
         }
     }
     refresh();
