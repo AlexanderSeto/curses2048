@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#define SIZE 4
 // const long values[] = {
 //    0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
 // };
@@ -17,10 +18,18 @@ struct game_state {
     int blocks_in_play;
 };
 
+struct tile {
+    int x;
+    int y;
+};
+
 struct game_state *init_game_state();
 void draw(struct game_state *);
 void slide_array(struct game_state *,int);
 void insert_rand(struct game_state *);
+int *get_direction_vector(int dir);
+int **build_traversals(int *vector);
+int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]);
 
 int main(int argc, char *argv[]) {
 
@@ -28,7 +37,7 @@ int main(int argc, char *argv[]) {
     srand((unsigned) time(NULL));
 
     insert_rand(game);
-    insert_rand(game);
+    //insert_rand(game);
 
     initscr();
 	start_color();
@@ -52,7 +61,7 @@ int main(int argc, char *argv[]) {
     int c;
     while((c = getch()) != KEY_F(1)) {
         slide_array(game, c - 258);
-        insert_rand(game);
+        //insert_rand(game);
         draw(game);
     }
     endwin();
@@ -61,8 +70,8 @@ int main(int argc, char *argv[]) {
 }
 struct game_state *init_game_state() {
     struct game_state *game = (struct game_state*) malloc(sizeof(struct game_state));
-    for (int i = 0; i < 4; i++)
-        for(int j = 0; j < 4; j++)
+    for (int i = 0; i < SIZE; i++)
+        for(int j = 0; j < SIZE; j++)
             game->grid[i][j] = 0;
     game->total_score = 0;
     game->score_last_move = 0;
@@ -73,8 +82,8 @@ struct game_state *init_game_state() {
 void insert_rand(struct game_state *game) {
     bool inserted = false;
     while(!inserted) {
-        int i = rand()%4;
-        int j = rand()%4;
+        int i = rand()%SIZE;
+        int j = rand()%SIZE;
         if (game->grid[i][j] == 0) {
             game->grid[i][j] = 2;
             inserted = true;
@@ -101,70 +110,108 @@ void draw(struct game_state *game) {
 }
 void slide_array (struct game_state *game, int dir) {
     mvaddch(0,0, dir + '0');
-    switch(dir) {
-        case 0: //down
-        //game->grid[][] = 40;
-            for (int j = 0; j < 4; j++) {
-                for(int i = 0; i < 4; i++) {
-                    if (i < 3 && game->grid[i+1][j] == 0) {
-                        game->grid[i+1][j] = game->grid[i][j];
-                        game->grid[i][j] = 0;
-                    }
-                    else if(i < 3 && game->grid[i+1][j] == game->grid[i][j]) {
-                        game->grid[i+1][j] *=2;
-                        game->grid[i][j] = 0;
-                    }
+    bool moved = false;
+    int *vector = get_direction_vector(dir);
+    int **traversals = build_traversals(vector);
+    mvprintw(2, 0,"TEST %d %d", vector[0], vector[1]);
+    for(int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            int x = traversals[0][i];
+            int y = traversals[0][j];
+            refresh();
+            int tile = game->grid[x][y];
 
+            if(tile) {
+                int *position = find_farthest_position(game, x, y, vector);
+                int f_x = position[0];
+                int f_y = position[1];
+                int next_x = position[2];
+                int next_y = position[3];
+                // ONE?
+                if(game->grid[next_x][next_y] == game->grid[x][y]) {
+                    game->grid[next_x][next_y] *=2;
+                    game->grid[x][y] = 0;
+                    moved = true;
                 }
-            }
-            break;
-        case 1: //up
-            for (int j = 0; j < 4; j++) {
-                for(int i = 3; i >=0; i--) {
-                    if (i > 0 && game->grid[i-1][j] == 0) {
-                        game->grid[i-1][j] = game->grid[i][j];
-                        game->grid[i][j] = 0;
-                    }
-                    else if(i > 0 && game->grid[i-1][j] == game->grid[i][j]) {
-                        game->grid[i-1][j] *=2;
-                        game->grid[i][j] = 0;
-                    }
+                else {
+                    mvprintw(1,1,"test %d %d", f_x, f_y);
+                    mvprintw(2,1,"test %d %d", x, y);
 
+                    game->grid[f_x][f_y] = game->grid[x][y];
+                    //game->grid[x][y] = 0;
                 }
-            }
-            break;
-        case 2: //left
-            for (int i = 0; i < 4; i++) {
-                for(int j = 3; j >= 0; j--) {
-                    if (j > 0 && game->grid[i][j-1] == 0) {
-                        game->grid[i][j-1] = game->grid[i][j];
-                        game->grid[i][j] = 0;
-                    }
-                    else if(i > 0 && game->grid[i][j-1] == game->grid[i][j]) {
-                        game->grid[i][j-1] *=2;
-                        game->grid[i][j] = 0;
-                    }
 
-                }
             }
-            break;
-        case 3: //right
-            for (int i = 0; i < 4; i++) {
-                for(int j = 0; j < 4; j++) {
-                    if (j < 3 && game->grid[i][j+1] == 0) {
-                        game->grid[i][j+1] = game->grid[i][j];
-                        game->grid[i][j] = 0;
-                    }
-                    else if(i < 3 && game->grid[i][j+1] == game->grid[i][j]) {
-                        game->grid[i][j+1] *=2;
-                        game->grid[i][j] = 0;
-                    }
-
-                }
-            }
-
-            break;
-        default:
-            break;
+        }
     }
+    if(moved) {
+        insert_rand(game);
+    }
+
 }
+
+/*
+ * 0 - 0 1
+ * 1 - 0 -1
+ * 2 - -1 0
+ * 3 - 1 0
+ */
+int *get_direction_vector(int dir) {
+    static int vector[2] = {0, 0};
+    switch (dir) {
+        case 0:
+            vector[0] = 1;
+            break;
+        case 1:
+            vector[0] = -1;
+            break;
+        case 2:
+            vector[1] = 1;
+            break;
+        case 3:
+            vector[1] = -1;
+            break;
+        }
+
+    //vector[0] = (2 - dir) % 2;
+    //vector[1] = (dir - 1) % 2;
+    return vector;
+}
+
+int **build_traversals(int *vector) {
+    static int *traversals[2];
+    traversals[0] = (int *) malloc(sizeof(int)*SIZE);
+    traversals[1] = (int *) malloc(sizeof(int)*SIZE);
+
+    for (int i = 0; i < SIZE; i++) {
+        if(vector[0] == 1)
+            traversals[0][i] = SIZE -1 - i;
+        else
+            traversals[0][i] = i;
+        if(vector[1] == 1)
+            traversals[1][i] = SIZE -1 -i;
+        else
+            traversals[1][i] = i;
+    }
+    return traversals;
+}
+
+int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]) {
+    int prev_x, prev_y;
+    static int *farthest;
+    mvprintw(3,1,"Vector %d %d", vector[0], vector[1]);
+    do {
+        mvprintw(3,20, "PREVXY %d %d", x, y);
+        prev_x = x; prev_y = y;
+        x = prev_x + vector[0]; y = prev_y + vector[1];
+        mvprintw(2,20, "PREVXY %d %d", x, y);
+
+    } while( 0 <= x && x < SIZE && 0 <= y && y < SIZE && game->grid[prev_x][prev_y] == 0);
+
+    farthest = (int *) malloc(sizeof(int) *4);
+    farthest[0] = prev_x;
+    farthest[1] = prev_y;
+    farthest[2] = x;
+    farthest[3] = y;
+    return farthest;
+};
