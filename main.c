@@ -15,7 +15,8 @@ struct game_state {
     bool have_moved;
     long total_score;
     long score_last_move;
-    int blocks_in_play;
+    int tiles_in_play;
+    bool game_over;
 };
 
 struct tile {
@@ -31,6 +32,7 @@ void get_direction_vector(int vector[], int dir);
 void build_traversals(int traversals[2][SIZE], int *vector);
 void find_farthest_position(struct game_state *game, int postion[4], int x, int y, int vector[2]);
 bool in_range(int i);
+bool tiles_matches_availible(struct game_state *game);
 
 int main(int argc, char *argv[]) {
 
@@ -39,6 +41,7 @@ int main(int argc, char *argv[]) {
 
     insert_rand(game);
     insert_rand(game);
+    game->tiles_in_play = 2;
 
     initscr();
 	start_color();
@@ -60,11 +63,12 @@ int main(int argc, char *argv[]) {
     draw(game);
 
     int c;
-    while((c = getch()) != KEY_F(1)) {
+    while((c = getch()) != KEY_F(1) && game->game_over != true) {
         slide_array(game, c - 258);
-        //insert_rand(game);
         draw(game);
     }
+    mvprintw(0,10, "Sorry, you lose! Score: %d", game->total_score);
+    getch();
     endwin();
 
 
@@ -76,7 +80,8 @@ struct game_state *init_game_state() {
             game->grid[i][j] = 0;
     game->total_score = 0;
     game->score_last_move = 0;
-    game->blocks_in_play = 0;
+    game->tiles_in_play = 0;
+    game->game_over = false;
     return game;
 }
 
@@ -91,7 +96,7 @@ void insert_rand(struct game_state *game) {
         }
 
     }
-    game->blocks_in_play++;
+    game->tiles_in_play++;
 }
 
 void draw(struct game_state *game) {
@@ -135,6 +140,7 @@ void slide_array (struct game_state *game, int dir) {
                     game->grid[x][y] = 0;
                     moved = true;
                     game->score_last_move = game->grid[next_x][next_y];
+                    game->tiles_in_play--;
                 }
                 else if (in_range(f_x) && in_range(f_y)){
                     game->grid[f_x][f_y] = game->grid[x][y];
@@ -150,6 +156,10 @@ void slide_array (struct game_state *game, int dir) {
         insert_rand(game);
         game->total_score += game->score_last_move;
         mvprintw(0, 10, "Score %d = (+ %d)", game->total_score, game->score_last_move);
+
+        if(( SIZE*SIZE - game->tiles_in_play) <= 0 && !tiles_matches_availible(game)) {
+            game->game_over = true;
+        }
     }
 
 }
@@ -214,4 +224,30 @@ void find_farthest_position(struct game_state *game, int position[4], int x, int
 
 bool in_range(int i) {
     return i >= 0 && i < SIZE;
+}
+
+bool tiles_matches_availible(struct game_state *game) {
+    for(int i = 0; i < SIZE; i++) {
+        for(int j = 0; j < SIZE; j++) {
+            int tile = game->grid[i][j];
+            if(tile) {
+                for(int dir = 0; dir < 4; dir++) {
+                    int vector[2];
+                    get_direction_vector(vector, dir);
+                    if (in_range(i+vector[0]) && in_range(i+vector[1])) {
+                        int new_tile = game->grid[i + vector[0]][j + vector[1]];
+                        if(new_tile == tile) {
+                            mvprintw(1,10, "MATCHES AVAILIVLE");
+                            return true;
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+    }
+    mvprintw(1,10, "NOMATCHES AVAILIVLE");
+    return false;
 }
