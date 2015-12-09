@@ -30,6 +30,7 @@ void insert_rand(struct game_state *);
 int *get_direction_vector(int dir);
 int **build_traversals(int *vector);
 int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]);
+bool in_range(int i);
 
 int main(int argc, char *argv[]) {
 
@@ -117,28 +118,28 @@ void slide_array (struct game_state *game, int dir) {
     for(int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             int x = traversals[0][i];
-            int y = traversals[0][j];
+            int y = traversals[1][j];
             refresh();
             int tile = game->grid[x][y];
 
-            if(tile) {
+            if(tile != 0) {
                 int *position = find_farthest_position(game, x, y, vector);
                 int f_x = position[0];
                 int f_y = position[1];
                 int next_x = position[2];
                 int next_y = position[3];
                 // ONE?
-                if(game->grid[next_x][next_y] == game->grid[x][y]) {
+                if(in_range(next_x) && in_range(next_y) && game->grid[next_x][next_y] == game->grid[x][y]) {
                     game->grid[next_x][next_y] *=2;
                     game->grid[x][y] = 0;
                     moved = true;
                 }
-                else {
+                else if (in_range(f_x) && in_range(f_y)){
                     mvprintw(1,1,"test %d %d", f_x, f_y);
                     mvprintw(2,1,"test %d %d", x, y);
 
                     game->grid[f_x][f_y] = game->grid[x][y];
-                    //game->grid[x][y] = 0;
+                    game->grid[x][y] = 0;
                 }
 
             }
@@ -151,25 +152,25 @@ void slide_array (struct game_state *game, int dir) {
 }
 
 /*
- * 0 - 0 1
- * 1 - 0 -1
- * 2 - -1 0
- * 3 - 1 0
+ * 0 - 0 1 down
+ * 1 - 0 -1 up
+ * 2 - -1 0 left
+ * 3 - 1 0 right
  */
 int *get_direction_vector(int dir) {
     static int vector[2] = {0, 0};
     switch (dir) {
-        case 0:
+        case 0: //down
             vector[0] = 1;
             break;
-        case 1:
+        case 1: //up
             vector[0] = -1;
             break;
-        case 2:
-            vector[1] = 1;
-            break;
-        case 3:
+        case 2:// left
             vector[1] = -1;
+            break;
+        case 3: //right
+            vector[1] = 1;
             break;
         }
 
@@ -201,17 +202,21 @@ int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]
     static int *farthest;
     mvprintw(3,1,"Vector %d %d", vector[0], vector[1]);
     do {
-        mvprintw(3,20, "PREVXY %d %d", x, y);
         prev_x = x; prev_y = y;
         x = prev_x + vector[0]; y = prev_y + vector[1];
-        mvprintw(2,20, "PREVXY %d %d", x, y);
-
-    } while( 0 <= x && x < SIZE && 0 <= y && y < SIZE && game->grid[prev_x][prev_y] == 0);
+    } while( in_range(x) && in_range(y) && game->grid[x][y] == 0);
 
     farthest = (int *) malloc(sizeof(int) *4);
     farthest[0] = prev_x;
     farthest[1] = prev_y;
     farthest[2] = x;
     farthest[3] = y;
+    mvprintw(2,20, "PREVXY %d %d", prev_x, prev_y);
+    mvprintw(3,20, "XY %d %d", x, y);
+
     return farthest;
 };
+
+bool in_range(int i) {
+    return i >= 0 && i < SIZE;
+}
