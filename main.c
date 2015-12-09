@@ -135,6 +135,7 @@ void slide_array (struct game_state *game, int dir) {
                     game->grid[next_x][next_y] *=2;
                     game->grid[x][y] = 0;
                     moved = true;
+                    game->score_last_move = game->grid[next_x][next_y];
                 }
                 else if (in_range(f_x) && in_range(f_y)){
                     game->grid[f_x][f_y] = game->grid[x][y];
@@ -148,6 +149,8 @@ void slide_array (struct game_state *game, int dir) {
     }
     if(moved) {
         insert_rand(game);
+        game->total_score += game->score_last_move;
+        mvprintw(0, 10, "Score %d = (+ %d)", game->total_score, game->score_last_move);
     }
 
 }
