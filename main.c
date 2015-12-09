@@ -142,7 +142,8 @@ void slide_array (struct game_state *game, int dir) {
                     mvprintw(2,1,"test %d %d", x, y);
 
                     game->grid[f_x][f_y] = game->grid[x][y];
-                    game->grid[x][y] = 0;
+                    if(f_x != x || f_y != y)
+                        game->grid[x][y] = 0;
                 }
 
             }
