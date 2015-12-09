@@ -27,9 +27,9 @@ struct game_state *init_game_state();
 void draw(struct game_state *);
 void slide_array(struct game_state *,int);
 void insert_rand(struct game_state *);
-int *get_direction_vector(int dir);
-int **build_traversals(int *vector);
-int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]);
+void get_direction_vector(int vector[], int dir);
+void build_traversals(int traversals[2][SIZE], int *vector);
+void find_farthest_position(struct game_state *game, int postion[4], int x, int y, int vector[2]);
 bool in_range(int i);
 
 int main(int argc, char *argv[]) {
@@ -95,7 +95,7 @@ void insert_rand(struct game_state *game) {
 }
 
 void draw(struct game_state *game) {
-    static WINDOW *local_window[4][4];
+    WINDOW *local_window[4][4];
     for(int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             local_window[i][j] = newwin(4, 6, 4+i*4, 10 +j*6);
@@ -112,8 +112,10 @@ void draw(struct game_state *game) {
 void slide_array (struct game_state *game, int dir) {
     mvaddch(0,0, dir + '0');
     bool moved = false;
-    int *vector = get_direction_vector(dir);
-    int **traversals = build_traversals(vector);
+    int vector[2] = {0, 0};
+    get_direction_vector(vector, dir);
+    int traversals[2][SIZE];
+    build_traversals(traversals, vector);
     mvprintw(2, 0,"TEST %d %d", vector[0], vector[1]);
     for(int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -123,7 +125,8 @@ void slide_array (struct game_state *game, int dir) {
             int tile = game->grid[x][y];
 
             if(tile != 0) {
-                int *position = find_farthest_position(game, x, y, vector);
+                int position[4];
+                find_farthest_position(game, position, x, y, vector);
                 int f_x = position[0];
                 int f_y = position[1];
                 int next_x = position[2];
@@ -157,8 +160,7 @@ void slide_array (struct game_state *game, int dir) {
  * 2 - -1 0 left
  * 3 - 1 0 right
  */
-int *get_direction_vector(int dir) {
-    static int vector[2] = {0, 0};
+void get_direction_vector(int vector[2], int dir) {
     switch (dir) {
         case 0: //down
             vector[0] = 1;
@@ -176,13 +178,12 @@ int *get_direction_vector(int dir) {
 
     //vector[0] = (2 - dir) % 2;
     //vector[1] = (dir - 1) % 2;
-    return vector;
+
 }
 
-int **build_traversals(int *vector) {
-    static int *traversals[2];
-    traversals[0] = (int *) malloc(sizeof(int)*SIZE);
-    traversals[1] = (int *) malloc(sizeof(int)*SIZE);
+void build_traversals(int traversals[2][SIZE], int *vector) {
+    //traversals[0] = (int *) malloc(sizeof(int)*SIZE);
+    //traversals[1] = (int *) malloc(sizeof(int)*SIZE);
 
     for (int i = 0; i < SIZE; i++) {
         if(vector[0] == 1)
@@ -194,28 +195,24 @@ int **build_traversals(int *vector) {
         else
             traversals[1][i] = i;
     }
-    return traversals;
 }
 
-int *find_farthest_position(struct game_state *game, int x, int y, int vector[2]) {
+void find_farthest_position(struct game_state *game, int position[4], int x, int y, int vector[2]) {
     int prev_x, prev_y;
-    static int *farthest;
     mvprintw(3,1,"Vector %d %d", vector[0], vector[1]);
     do {
         prev_x = x; prev_y = y;
         x = prev_x + vector[0]; y = prev_y + vector[1];
     } while( in_range(x) && in_range(y) && game->grid[x][y] == 0);
 
-    farthest = (int *) malloc(sizeof(int) *4);
-    farthest[0] = prev_x;
-    farthest[1] = prev_y;
-    farthest[2] = x;
-    farthest[3] = y;
+    position[0] = prev_x;
+    position[1] = prev_y;
+    position[2] = x;
+    position[3] = y;
     mvprintw(2,20, "PREVXY %d %d", prev_x, prev_y);
     mvprintw(3,20, "XY %d %d", x, y);
 
-    return farthest;
-};
+}
 
 bool in_range(int i) {
     return i >= 0 && i < SIZE;
