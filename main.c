@@ -237,7 +237,6 @@ bool tiles_matches_availible(struct game_state *game) {
                     if (in_range(i+vector[0]) && in_range(i+vector[1])) {
                         int new_tile = game->grid[i + vector[0]][j + vector[1]];
                         if(new_tile == tile) {
-                            mvprintw(1,10, "MATCHES AVAILIVLE");
                             return true;
                         }
                     }
@@ -248,6 +247,5 @@ bool tiles_matches_availible(struct game_state *game) {
         }
 
     }
-    mvprintw(1,10, "NOMATCHES AVAILIVLE");
     return false;
 }
