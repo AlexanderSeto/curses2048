@@ -11,7 +11,7 @@
 // };
 
 struct game_state {
-    int grid[4][4];
+    int grid[SIZE][SIZE];
     bool have_moved;
     long total_score;
     long score_last_move;
@@ -95,9 +95,9 @@ void insert_rand(struct game_state *game) {
 }
 
 void draw(struct game_state *game) {
-    WINDOW *local_window[4][4];
-    for(int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    WINDOW *local_window[SIZE][SIZE];
+    for(int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
             local_window[i][j] = newwin(4, 6, 4+i*4, 10 +j*6);
             box(local_window[i][j], 0, 0); // I could remove box and invert colors.
             char num[4];
