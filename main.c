@@ -120,7 +120,6 @@ void slide_array (struct game_state *game, int dir) {
         for (int j = 0; j < SIZE; j++) {
             int x = traversals[0][i];
             int y = traversals[1][j];
-            refresh();
             int tile = game->grid[x][y];
 
             if(tile != 0) {
