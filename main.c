@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     srand((unsigned) time(NULL));
 
     insert_rand(game);
-    //insert_rand(game);
+    insert_rand(game);
 
     initscr();
 	start_color();
@@ -140,6 +140,7 @@ void slide_array (struct game_state *game, int dir) {
                     game->grid[f_x][f_y] = game->grid[x][y];
                     if(f_x != x || f_y != y)
                         game->grid[x][y] = 0;
+                    moved = true;
                 }
 
             }
