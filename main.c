@@ -116,7 +116,6 @@ void slide_array (struct game_state *game, int dir) {
     get_direction_vector(vector, dir);
     int traversals[2][SIZE];
     build_traversals(traversals, vector);
-    mvprintw(2, 0,"TEST %d %d", vector[0], vector[1]);
     for(int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             int x = traversals[0][i];
@@ -138,9 +137,6 @@ void slide_array (struct game_state *game, int dir) {
                     moved = true;
                 }
                 else if (in_range(f_x) && in_range(f_y)){
-                    mvprintw(1,1,"test %d %d", f_x, f_y);
-                    mvprintw(2,1,"test %d %d", x, y);
-
                     game->grid[f_x][f_y] = game->grid[x][y];
                     if(f_x != x || f_y != y)
                         game->grid[x][y] = 0;
@@ -200,7 +196,6 @@ void build_traversals(int traversals[2][SIZE], int *vector) {
 
 void find_farthest_position(struct game_state *game, int position[4], int x, int y, int vector[2]) {
     int prev_x, prev_y;
-    mvprintw(3,1,"Vector %d %d", vector[0], vector[1]);
     do {
         prev_x = x; prev_y = y;
         x = prev_x + vector[0]; y = prev_y + vector[1];
@@ -210,8 +205,7 @@ void find_farthest_position(struct game_state *game, int position[4], int x, int
     position[1] = prev_y;
     position[2] = x;
     position[3] = y;
-    mvprintw(2,20, "PREVXY %d %d", prev_x, prev_y);
-    mvprintw(3,20, "XY %d %d", x, y);
+
 
 }
 
