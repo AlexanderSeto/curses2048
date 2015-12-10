@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
 
     insert_rand(game);
     insert_rand(game);
-    game->tiles_in_play = 2;
 
     initscr();
 	start_color();
