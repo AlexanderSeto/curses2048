@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <time.h>
 
+/*
+ * Will define the size of the game board as SIZE rows and SIZE columns. As it
+ * stands, the display funcions work best with 4.
+ */
 #define SIZE 4
-// const long values[] = {
-//    0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
-// };
 
 struct game_state {
     int grid[SIZE][SIZE];
@@ -40,7 +41,6 @@ int main(int argc, char *argv[]) {
     struct game_state *game = init_game_state();
     srand((unsigned)time(NULL));
 
-
     insert_rand(game);
     insert_rand(game);
 
@@ -59,6 +59,9 @@ int main(int argc, char *argv[]) {
     endwin();
 }
 
+/*
+ * Initialize game state into a locally allocated game state pointer and return.
+ */
 struct game_state *init_game_state() {
     struct game_state *game =
         (struct game_state *)malloc(sizeof(struct game_state));
@@ -71,6 +74,9 @@ struct game_state *init_game_state() {
     return game;
 }
 
+/*
+ * Find a random location in the grid, incremenent tiles_in_play.
+ */
 void insert_rand(struct game_state *game) {
     bool inserted = false;
     while (!inserted) {
@@ -84,6 +90,10 @@ void insert_rand(struct game_state *game) {
     game->tiles_in_play++;
 }
 
+/*
+ * Draw the SIZE by SIZE grid onto the screen via ncurses Each grid element is
+ * its own ncurses WINDOW so that custom colors can be assigned to each value.
+ */
 void draw(struct game_state *game) {
     WINDOW *local_window[SIZE][SIZE];
     for (int i = 0; i < SIZE; i++) {
@@ -101,6 +111,12 @@ void draw(struct game_state *game) {
     refresh();
 }
 
+/*
+ * Shift the grid tiles in the direction specified. Determine the "vector" for
+ * the shift, then build traversal arrays based on those vectors. Iterate
+ * through the grid according to the travesal arrays and shift accordingly.
+ * After moving, update the score and check for lose conditions.
+ */
 void slide_array(struct game_state *game, int dir) {
     mvaddch(0, 0, dir + '0');
     bool moved = false;
@@ -151,10 +167,10 @@ void slide_array(struct game_state *game, int dir) {
 }
 
 /*
- * 0 - 0 1 down
- * 1 - 0 -1 up
- * 2 - -1 0 left
- * 3 - 1 0 right
+ * Determine the direction vector for a given direction. A direction vector is
+ * just an x and a y value that correspond to the proveded direction.
+ * 0: ( 0,  1) down         1: ( 0, -1) up
+ * 2: (-1,  0) left         3: ( 1,  0) right
  */
 void get_direction_vector(int vector[2], int dir) {
     switch (dir) {
