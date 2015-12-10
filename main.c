@@ -34,29 +34,17 @@ void find_farthest_position(struct game_state *game, int postion[4], int x,
                             int y, int vector[2]);
 bool in_range(int i);
 bool tiles_matches_availible(struct game_state *game);
+void init_curses();
 
 int main(int argc, char *argv[]) {
     struct game_state *game = init_game_state();
     srand((unsigned)time(NULL));
 
+
     insert_rand(game);
     insert_rand(game);
 
-    initscr();
-	start_color();
-    cbreak();
-    noecho();
-
-	keypad(stdscr, TRUE);
-
-    init_pair(2, 179, 000);
-    init_pair(4, 178, 000);
-    init_pair(8, 172, 000);
-    init_pair(16, 208, 000);
-    init_pair(32, 160, 000);
-    init_pair(64, 196, 000);
-    init_pair(128, 220, 000);
-    init_pair(256, 184, 000);
+    init_curses();
 
     draw(game);
     draw(game);
@@ -235,4 +223,22 @@ bool tiles_matches_availible(struct game_state *game) {
         }
     }
     return false;
+}
+
+void int_curses() {
+    initscr();
+    start_color();
+    cbreak();
+    noecho();
+
+    keypad(stdscr, TRUE);
+
+    init_pair(2, 179, 000);
+    init_pair(4, 178, 000);
+    init_pair(8, 172, 000);
+    init_pair(16, 208, 000);
+    init_pair(32, 160, 000);
+    init_pair(64, 196, 000);
+    init_pair(128, 220, 000);
+    init_pair(256, 184, 000);
 }
