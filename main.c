@@ -8,10 +8,10 @@
 #include <ctype.h>
 
 /*
- * Will define the size of the game board as SIZE rows and SIZE columns. As it
+ * Will define the size of the game board as g_size rows and g_size columns. As it
  * stands, the display funcions work best with 4.
  */
-int SIZE = 4;
+int g_size = 4;
 
 struct game_state {
     int **grid;
@@ -70,10 +70,10 @@ int main(int argc, char *argv[]) {
 struct game_state *initGameState() {
     struct game_state *game =
         (struct game_state *)malloc(sizeof(struct game_state));
-    game->grid = (int **)malloc(SIZE * sizeof(int *));
-    for (int i = 0; i < SIZE; i++) {
-        game->grid[i] = (int *)malloc(SIZE * sizeof(int));
-        for (int j = 0; j < SIZE; j++) game->grid[i][j] = 0;
+    game->grid = (int **)malloc(g_size * sizeof(int *));
+    for (int i = 0; i < g_size; i++) {
+        game->grid[i] = (int *)malloc(g_size * sizeof(int));
+        for (int j = 0; j < g_size; j++) game->grid[i][j] = 0;
     }
     game->total_score = 0;
     game->score_last_move = 0;
@@ -88,8 +88,8 @@ struct game_state *initGameState() {
 void addRandomTile(struct game_state *game) {
     bool inserted = false;
     while (!inserted) {
-        int i = rand() % SIZE;
-        int j = rand() % SIZE;
+        int i = rand() % g_size;
+        int j = rand() % g_size;
         if (game->grid[i][j] == 0) {
             game->grid[i][j] = 2;
             inserted = true;
@@ -99,17 +99,17 @@ void addRandomTile(struct game_state *game) {
 }
 
 /*
- * Draw the SIZE by SIZE grid onto the screen via ncurses Each grid element is
+ * Draw the g_size by g_size grid onto the screen via ncurses Each grid element is
  * its own ncurses WINDOW so that custom colors can be assigned to each value.
  */
 void draw(struct game_state *game) {
-    WINDOW *local_window[SIZE][SIZE];
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
+    WINDOW *local_window[g_size][g_size];
+    for (int i = 0; i < g_size; i++) {
+        for (int j = 0; j < g_size; j++) {
             int y, x;
             getmaxyx(stdscr, y, x);
-            local_window[i][j] = newwin(4, 6, (y - SIZE * 4) / 2 + i * 4,
-                                        (x - SIZE * 6) / 2 + j * 6);
+            local_window[i][j] = newwin(4, 6, (y - g_size * 4) / 2 + i * 4,
+                                        (x - g_size * 6) / 2 + j * 6);
             // I could remove box and invert colors instead.
             box(local_window[i][j], 0, 0);
             char num[4];
@@ -135,8 +135,8 @@ void moveGrid(struct game_state *game, int dir) {
     getDirectionVector(vector, dir);
     int *traversals[2];
     buildTraversals(traversals, vector);
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
+    for (int i = 0; i < g_size; i++) {
+        for (int j = 0; j < g_size; j++) {
             int x = traversals[0][i];
             int y = traversals[1][j];
             int tile = game->grid[x][y];
@@ -170,7 +170,7 @@ void moveGrid(struct game_state *game, int dir) {
         mvprintw(0, 10, "Score %d = (+ %d)", game->total_score,
                  game->score_last_move);
 
-        if ((SIZE * SIZE - game->tiles_in_play) <= 0 &&
+        if ((g_size * g_size - game->tiles_in_play) <= 0 &&
             !tileMatchesAvailible(game)) {
             game->game_over = true;
         }
@@ -201,15 +201,15 @@ void getDirectionVector(int vector[2], int dir) {
 }
 
 void buildTraversals(int *traversals[2], int *vector) {
-    traversals[0] = (int *)malloc(SIZE * sizeof(int));
-    traversals[1] = (int *)malloc(SIZE * sizeof(int));
-    for (int i = 0; i < SIZE; i++) {
+    traversals[0] = (int *)malloc(g_size * sizeof(int));
+    traversals[1] = (int *)malloc(g_size * sizeof(int));
+    for (int i = 0; i < g_size; i++) {
         if (vector[0] == 1)
-            traversals[0][i] = SIZE - 1 - i;
+            traversals[0][i] = g_size - 1 - i;
         else
             traversals[0][i] = i;
         if (vector[1] == 1)
-            traversals[1][i] = SIZE - 1 - i;
+            traversals[1][i] = g_size - 1 - i;
         else
             traversals[1][i] = i;
     }
@@ -231,11 +231,11 @@ void findFarthestPosition(struct game_state *game, int position[4], int x,
     position[3] = y;
 }
 
-bool inRange(int i) { return i >= 0 && i < SIZE; }
+bool inRange(int i) { return i >= 0 && i < g_size; }
 
 bool tileMatchesAvailible(struct game_state *game) {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
+    for (int i = 0; i < g_size; i++) {
+        for (int j = 0; j < g_size; j++) {
             int tile = game->grid[i][j];
             if (tile) {
                 for (int dir = 0; dir < 4; dir++) {
@@ -288,7 +288,7 @@ bool parseArgs(int argc, char *argv[]) {
                     return false;
                 }
 
-                SIZE = atoi(optarg);
+                g_size = atoi(optarg);
 
                 break;
             case '?':
