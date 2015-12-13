@@ -118,7 +118,7 @@ void draw(struct game_state *game) {
  * through the grid according to the travesal arrays and shift accordingly.
  * After moving, update the score and check for lose conditions.
  */
-void move_grid(struct game_state *game, int dir) {
+void moveGrid(struct game_state *game, int dir) {
     mvaddch(0, 0, dir + '0');
     bool moved = false;
     int vector[2] = {0, 0};
