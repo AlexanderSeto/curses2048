@@ -26,13 +26,13 @@ struct tile {
 
 struct game_state *init_game_state();
 void draw(struct game_state *);
-void slide_array(struct game_state *, int);
+void move(struct game_state *, int);
 void add_random_tile(struct game_state *);
 void get_direction_vector(int vector[], int dir);
 void build_traversals(int traversals[2][SIZE], int *vector);
 void find_farthest_position(struct game_state *, int[4], int, int, int[2]);
 bool in_range(int);
-bool tiles_matches_availible(struct game_state *);
+bool tile_matches_availible(struct game_state *);
 void init_curses();
 
 int main(int argc, char *argv[]) {
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     int c;
     while ((c = getch()) != KEY_F(1) && game->game_over != true) {
-        slide_array(game, c - 258);
+        move(game, c - 258);
         draw(game);
     }
     mvprintw(0, 10, "Sorry, you lose! Score: %d", game->total_score);
@@ -115,7 +115,7 @@ void draw(struct game_state *game) {
  * through the grid according to the travesal arrays and shift accordingly.
  * After moving, update the score and check for lose conditions.
  */
-void slide_array(struct game_state *game, int dir) {
+void move(struct game_state *game, int dir) {
     mvaddch(0, 0, dir + '0');
     bool moved = false;
     int vector[2] = {0, 0};
@@ -158,7 +158,7 @@ void slide_array(struct game_state *game, int dir) {
                  game->score_last_move);
 
         if ((SIZE * SIZE - game->tiles_in_play) <= 0 &&
-            !tiles_matches_availible(game)) {
+            !tile_matches_availible(game)) {
             game->game_over = true;
         }
     }
@@ -218,7 +218,7 @@ void find_farthest_position(struct game_state *game, int position[4], int x,
 
 bool in_range(int i) { return i >= 0 && i < SIZE; }
 
-bool tiles_matches_availible(struct game_state *game) {
+bool tile_matches_availible(struct game_state *game) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             int tile = game->grid[i][j];
