@@ -93,10 +93,12 @@ void add_random_tile(struct game_state *game) {
  * its own ncurses WINDOW so that custom colors can be assigned to each value.
  */
 void draw(struct game_state *game) {
-    WINDOW *local_window[SIZE][SIZE];
+    static WINDOW *local_window[SIZE][SIZE];
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            local_window[i][j] = newwin(4, 6, 4 + i * 4, 10 + j * 6);
+            int y, x;
+            getmaxyx(stdscr, y, x);
+            local_window[i][j] = newwin( 4, 6, (y-SIZE*4)/2 + i * 4, (x-SIZE*6)/2 + j * 6);
             // I could remove box and invert colors instead.
             box(local_window[i][j], 0, 0);
             char num[4];
