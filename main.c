@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
+#include <ctype.h>
 
 /*
  * Will define the size of the game board as SIZE rows and SIZE columns. As it
  * stands, the display funcions work best with 4.
  */
-const int SIZE = 4;
+int SIZE = 4;
 
 struct game_state {
     int **grid;
@@ -29,13 +31,18 @@ void draw(struct game_state *);
 void moveGrid(struct game_state *, int);
 void addRandomTile(struct game_state *);
 void getDirectionVector(int vector[], int dir);
-void buildTraversals(int traversals[2][SIZE], int *vector);
+void buildTraversals(int *traversals[2], int *vector);
 void findFarthestPosition(struct game_state *, int[4], int, int, int[2]);
 bool inRange(int);
 bool tileMatchesAvailible(struct game_state *);
 void initCurses();
+bool parseArgs(int, char *[]);
 
 int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        if(!parseArgs(argc, argv))
+            return -1;
+    }
     struct game_state *game = initGameState();
     srand((unsigned)time(NULL));
 
@@ -96,7 +103,7 @@ void addRandomTile(struct game_state *game) {
  * its own ncurses WINDOW so that custom colors can be assigned to each value.
  */
 void draw(struct game_state *game) {
-    static WINDOW *local_window[SIZE][SIZE];
+    WINDOW *local_window[SIZE][SIZE];
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             int y, x;
@@ -126,7 +133,7 @@ void moveGrid(struct game_state *game, int dir) {
     bool moved = false;
     int vector[2] = {0, 0};
     getDirectionVector(vector, dir);
-    int traversals[2][SIZE];
+    int *traversals[2];
     buildTraversals(traversals, vector);
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -193,7 +200,9 @@ void getDirectionVector(int vector[2], int dir) {
     }
 }
 
-void buildTraversals(int traversals[2][SIZE], int *vector) {
+void buildTraversals(int *traversals[2], int *vector) {
+    traversals[0] = (int *)malloc(SIZE * sizeof(int));
+    traversals[1] = (int *)malloc(SIZE * sizeof(int));
     for (int i = 0; i < SIZE; i++) {
         if (vector[0] == 1)
             traversals[0][i] = SIZE - 1 - i;
@@ -261,4 +270,40 @@ void initCurses() {
     init_pair(64, 196, 000);
     init_pair(128, 220, 000);
     init_pair(256, 184, 000);
+}
+
+bool parseArgs(int argc, char *argv[]) {
+    int c;
+    while ((c = getopt(argc, argv, "s:")) != -1) {
+        switch (c) {
+            case 'h':
+                /* TODO: Print help info */
+                break;
+            case 'c':
+                /* TODO: Color Options as a parameter. */
+                break;
+            case 's':
+                if(!atoi(optarg)) {
+                    fprintf(stderr, "%s: Invalid argument parameter -- %s\n", argv[0], optarg);
+                    return false;
+                }
+
+                SIZE = atoi(optarg);
+
+                break;
+            case '?':
+                if (optopt == 's')
+                    fprintf(stderr, "Option -%c requires an argument.\n",
+                            optopt);
+                 else if (isprint(optopt))
+                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+                 else
+                     fprintf(stderr, "Unknown option character `\\x%x'.\n",
+                             optopt);
+                return false;
+            default:
+                abort();
+        }
+    }
+    return true;
 }
