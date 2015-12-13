@@ -9,10 +9,10 @@
  * Will define the size of the game board as SIZE rows and SIZE columns. As it
  * stands, the display funcions work best with 4.
  */
-#define SIZE 4
+const int SIZE = 4;
 
 struct game_state {
-    int grid[SIZE][SIZE];
+    int **grid;
     long total_score;
     long score_last_move;
     int tiles_in_play;
@@ -63,8 +63,11 @@ int main(int argc, char *argv[]) {
 struct game_state *initGameState() {
     struct game_state *game =
         (struct game_state *)malloc(sizeof(struct game_state));
-    for (int i = 0; i < SIZE; i++)
+    game->grid = (int **)malloc(SIZE * sizeof(int *));
+    for (int i = 0; i < SIZE; i++) {
+        game->grid[i] = (int *)malloc(SIZE * sizeof(int));
         for (int j = 0; j < SIZE; j++) game->grid[i][j] = 0;
+    }
     game->total_score = 0;
     game->score_last_move = 0;
     game->tiles_in_play = 0;
