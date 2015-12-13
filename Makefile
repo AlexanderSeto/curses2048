@@ -1,5 +1,9 @@
+CC = gcc
+CFLAGS = -g -Wall -lcurses
+TARGET = curses2048
+
 curses2048: main.c
-	gcc -o curses2048 main.c -lcurses
+	$(CC) $(CFLAGS) -o curses2048 main.c
 
 clean:
 	rm curses2048
